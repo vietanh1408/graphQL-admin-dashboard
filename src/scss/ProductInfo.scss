@@ -1,0 +1,9 @@
+.product-info {
+    display: grid;
+    grid-template-columns: 50% 50%;
+    grid-gap: 1rem;
+
+    & img {
+        width: 100%;
+    }
+}
