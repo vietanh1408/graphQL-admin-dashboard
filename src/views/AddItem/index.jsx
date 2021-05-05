@@ -18,7 +18,7 @@ function AddItem() {
             variables: { name, logo },
             refetchQueries: [{ query: getCategories }]
         })
-        history.push('/')
+        history.push('/categories')
     }
 
     const handleAddProduct = ({ name, price, image, description, quantity, categoryId }) => {
@@ -26,7 +26,7 @@ function AddItem() {
             variables: { name, image, price, description, quantity, categoryId },
             refetchQueries: [{ query: getProducts }]
         })
-        history.push('/')
+        history.push('/new-products')
     }
 
     return (

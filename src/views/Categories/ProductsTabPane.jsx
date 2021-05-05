@@ -1,8 +1,9 @@
 import { DeleteOutlined, FormOutlined } from '@ant-design/icons'
-import { useQuery } from '@apollo/client'
+import { useMutation, useQuery } from '@apollo/client'
 import { Button, Spin, Table } from 'antd'
 import React from 'react'
 import { Link, useRouteMatch } from 'react-router-dom'
+import { deleteProduct } from '../../graphql-client/mutations'
 import { getProductsByCategory } from '../../graphql-client/queries'
 
 function ProductsTabPane({ categoryId }) {
@@ -13,15 +14,15 @@ function ProductsTabPane({ categoryId }) {
         },
         skip: categoryId === null
     })
+    const [deleteProductById] = useMutation(deleteProduct)
     const { path } = useRouteMatch()
 
-    if (loading) return (
-        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Spin size='large' style={{ color: 'yellow' }} tip="Loading..." />
-        </div>
-    )
-
-    if (errors) return <div>404 PAGE NOT FOUND !!!</div>
+    const handleDelete = (id) => {
+        deleteProductById({
+            variables: { id },
+            refetchQueries: [{ query: getProductsByCategory }]
+        })
+    }
 
     const columns = [
         {
@@ -34,18 +35,31 @@ function ProductsTabPane({ categoryId }) {
             title: 'Tên',
             dataIndex: 'name',
             key: 'name',
+            sorter: (a, b) => {
+                if (a.name.toLowerCase().trim() < b.name.toLowerCase().trim()) return -1
+                if (a.name.toLowerCase().trim() > b.name.toLowerCase().trim()) return 1
+                return 0
+            },
             render: text => <p>{text}</p>,
         },
         {
             title: 'Giá',
             dataIndex: 'price',
             key: 'price',
+            sorter: {
+                compare: (a, b) => a.price - b.price,
+                multiple: 3
+            },
             render: (price) => <p>{price} VNĐ</p>
         },
         {
             title: 'Số lượng',
             dataIndex: 'quantity',
             key: 'quantity',
+            sorter: {
+                compare: (a, b) => a.quantity - b.quantity,
+                multiple: 3
+            },
         },
         {
             title: 'Danh mục',
@@ -61,11 +75,19 @@ function ProductsTabPane({ categoryId }) {
                     <Link to={`${path}/${text.id}`}>
                         <Button icon={<FormOutlined />} />
                     </Link>
-                    <Button icon={<DeleteOutlined />} />
+                    <Button icon={<DeleteOutlined />} onClick={() => handleDelete(text.id)} />
                 </>
             ),
         },
     ];
+
+    if (loading) return (
+        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Spin size='large' style={{ color: 'yellow' }} tip="Loading..." />
+        </div>
+    )
+
+    if (errors) return <div>404 PAGE NOT FOUND !!!</div>
 
     if (data) {
         const { category } = data

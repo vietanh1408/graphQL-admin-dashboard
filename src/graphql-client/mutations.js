@@ -22,6 +22,14 @@ const addProduct = gql`
     }
 `
 
+const deleteProduct = gql`
+    mutation deleteProductMutation($id: ID) {
+        deleteProduct(id: $id) {
+            name
+        }
+    }
+`
+
 const addCategory = gql`
     mutation addCategoryMutation($name: String, $logo: String) {
         createCategory(name: $name, logo: $logo) {
@@ -30,4 +38,4 @@ const addCategory = gql`
     }
 `
 
-export { addProduct, addCategory }
+export { addProduct, addCategory, deleteProduct }

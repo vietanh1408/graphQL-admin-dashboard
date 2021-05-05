@@ -1,14 +1,22 @@
 import { DeleteOutlined, FormOutlined } from '@ant-design/icons';
-import { useQuery } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
 import { Button, Table } from 'antd';
 import React from 'react';
 import { Link, useRouteMatch } from 'react-router-dom';
 import { getProducts } from './../../graphql-client/queries';
+import { deleteProduct } from './../../graphql-client/mutations';
 
 function ProductList() {
 
     const { loading, error, data } = useQuery(getProducts)
+    const [deleteProductById] = useMutation(deleteProduct)
     const { path } = useRouteMatch()
+    const handleDelete = (id) => {
+        deleteProductById({
+            variables: { id },
+            refetchQueries: [{ query: getProducts }]
+        })
+    }
 
     const columns = [
         {
@@ -21,23 +29,42 @@ function ProductList() {
             title: 'Tên',
             dataIndex: 'name',
             key: 'name',
+            sorter: (a, b) => {
+                if (a.name.toLowerCase().trim() < b.name.toLowerCase().trim()) return -1
+                if (a.name.toLowerCase().trim() > b.name.toLowerCase().trim()) return 1
+                return 0
+
+            },
             render: text => <p>{text}</p>,
         },
         {
             title: 'Giá',
             dataIndex: 'price',
             key: 'price',
+            sorter: {
+                compare: (a, b) => a.price - b.price,
+                multiple: 3
+            },
             render: (price) => <p>{price} VNĐ</p>
         },
         {
             title: 'Số lượng',
             dataIndex: 'quantity',
             key: 'quantity',
+            sorter: {
+                compare: (a, b) => a.quantity - b.quantity,
+                multiple: 3
+            },
         },
         {
             title: 'Danh mục',
             dataIndex: 'category',
             key: 'category',
+            sorter: (a, b) => {
+                if (a.category.name.toLowerCase().trim() < b.category.name.toLowerCase().trim()) return -1
+                if (a.category.name.toLowerCase().trim() > b.category.name.toLowerCase().trim()) return 1
+                return 0
+            },
             render: (category) => <p>{category?.name}</p>
         },
         {
@@ -48,7 +75,7 @@ function ProductList() {
                     <Link to={`${path}/${text.id}`}>
                         <Button icon={<FormOutlined />} />
                     </Link>
-                    <Button icon={<DeleteOutlined />} />
+                    <Button icon={<DeleteOutlined />} onClick={() => handleDelete(text.id)} />
                 </>
             ),
         },
@@ -61,7 +88,6 @@ function ProductList() {
     if (data) {
 
         const { products } = data
-
 
         return (
             <div className="product-page">
